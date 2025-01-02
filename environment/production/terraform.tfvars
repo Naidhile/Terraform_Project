@@ -3,6 +3,6 @@ image          = "nginx:stable"
 ports = [
   {
     internal = 80
-    external = 80
+    external = 8081
   }
 ]

@@ -19,5 +19,5 @@ variable "internal_port" {
 variable "external_port" {
   description = "The external port for the Docker container"
   type        = number
-  default     = 8080
+  default     = 8081
 }
