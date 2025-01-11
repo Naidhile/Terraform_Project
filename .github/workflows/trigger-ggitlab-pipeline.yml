@@ -3,7 +3,7 @@ name: Trigger GitLab Pipeline
 on:
   push:
     branches:
-      - master  # Trigger when code is pushed to the main branch
+      - master  # Trigger when code is pushed to the master branch
 
 jobs:
   trigger:
@@ -15,6 +15,4 @@ jobs:
 
       - name: Trigger GitLab Pipeline
         run: |
-          curl --request POST --form token=glptt-9ad9853756c8ee8a269d888357d680c6ec790d31 --form ref=master https://gitlab.com/api/v4/projects/66061264/trigger/pipeline
-        env:
-          GITLAB_TRIGGER_TOKEN: ${{ secrets.GITLAB_TRIGGER_TOKEN }}
+          curl --request POST --form token=${{ secrets.GITLAB_TRIGGER_TOKEN }} --form ref=master https://gitlab.com/api/v4/projects/66061264/trigger/pipeline
