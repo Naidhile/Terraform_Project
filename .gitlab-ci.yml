@@ -26,6 +26,7 @@ clone_repository:
     - git clone https://github.com/Naidhile/Terraform_Project
 
 # Set up the environment and verify Nginx setup
+
 install_dependencies:
   stage: setup
   script:
@@ -39,7 +40,9 @@ initialize_terraform:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - terraform init $TF_WORKING_DIR  # Initialize Terraform in the working directory
+    - docker exec -i terraform-env terraform init
+
+
 
 # Create Terraform execution plan
 plan_infrastructure:
