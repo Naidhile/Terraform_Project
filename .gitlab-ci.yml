@@ -1,77 +1,55 @@
 stages:
   - clone
   - setup
-  - init
-  - validate
+  - initialize
   - plan
   - apply
   - test
+  - cleanup
 
 variables:
   TF_ENV: "dev"  # Specify the environment (dev, staging, production)
   TF_WORKING_DIR: "environment/$TF_ENV"  # Working directory path
   TF_VERSION: "1.5.0"  # Define the version of Terraform to use
 
-image: kreuzwerker/terraform:latest  # Use the Terraform image
-
-services:
-  - docker:dind  # Docker-in-Docker service to enable Docker commands
-
-before_script:
-  - echo "Using Docker and Terraform..."
-  - docker --version
-  - docker info
-  - terraform --version || echo "Terraform will be managed by Docker"
-  - sleep 5  # Allow time for Docker to start
-
 clone_repository:
   stage: clone
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/Naidhile/Terraform_Project.git
-    - ls -al 
+    - git clone https://github.com/Naidhile/Terraform_Project
 
 install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
-    - docker run -d --name terraform-env kreuzwerker/terraform:latest  # Start the container for subsequent stages
-    - docker exec terraform-env terraform --version  # Verify Terraform version inside the container
+    - docker run -d --name terraform-env kreuzwerker/terraform:latest
 
-terraform-init:
-  stage: init
+initialize_terraform:
+  stage: initialize
   script:
-    - echo "Initializing Terraform for $TF_ENV environment..."
-    - cd $TF_WORKING_DIR
-    - docker exec terraform-env terraform init  # Initialize Terraform within the running container
+    - echo "Initializing Terraform..."
+    - docker exec -i terraform-env terraform init
 
-terraform-validate:
-  stage: validate
-  script:
-    - echo "Validating Terraform configuration..."
-    - cd $TF_WORKING_DIR
-    - docker exec terraform-env terraform validate  # Validate the Terraform configuration within the container
-
-terraform-plan:
+plan_infrastructure:
   stage: plan
   script:
-    - echo "Planning Terraform changes..."
-    - cd $TF_WORKING_DIR
-    - docker exec terraform-env terraform plan -out=tfplan  # Plan the changes inside the container
-  artifacts:
-    paths:
-      - $TF_WORKING_DIR/tfplan  # Save the plan file as an artifact
+    - echo "Creating Terraform execution plan..."
+    - docker exec -i terraform-env terraform plan -out=tfplan
 
-terraform-apply:
+apply_configuration:
   stage: apply
-  script:
-    - echo "Applying Terraform changes..."
-    - cd $TF_WORKING_DIR
-    - docker exec terraform-env terraform apply -auto-approve tfplan  # Apply the plan inside the container
+script:
+    - echo "Applying Terraform configuration..."
+    - docker exec -i terraform-env terraform apply -auto-approve tfplan
 
 test_configuration:
   stage: test
   script:
     - echo "Testing deployed infrastructure..."
-    - docker exec terraform-env terraform output  # Fetch Terraform output from the container
+    - docker exec -i terraform-env terraform output
 
+cleanup:
+  stage: cleanup
+  script:
+    - echo "Cleaning up the environment..."
+    - docker rm -f terraform-env
