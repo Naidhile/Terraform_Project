@@ -23,7 +23,7 @@ clone_repository:
   stage: clone
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/$GITHUB_REPO.git
+    - git clone https://github.com/Naidhile/Terraform_Project.git
 
 install_dependencies:
   stage: setup
