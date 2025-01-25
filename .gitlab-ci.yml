@@ -24,12 +24,10 @@ install_dependencies:
   image: nginx:latest  # Using nginx:latest image as per your request
   script:
     - echo "Installing dependencies inside nginx container"
-    - apt-get update && apt-get install -y unzip curl  # Installing necessary dependencies
-    - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
-    - apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    - apt-get update
-    - apt-get install terraform  # Install Terraform in the container
-    - terraform --version  # Verify installation
+    - apt-get update && apt-get install -y unzip curl wget  # Install wget for downloading Terraform
+    - wget https://releases.hashicorp.com/terraform/1.4.6/terraform_1.4.6_linux_amd64.zip -P /tmp  # Download Terraform zip
+    - unzip /tmp/terraform_1.4.6_linux_amd64.zip -d /usr/local/bin  # Unzip and place in /usr/local/bin
+    - terraform --version  # Verify Terraform installation
 
 initialize_terraform:
   stage: initialize
