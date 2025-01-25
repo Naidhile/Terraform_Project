@@ -36,7 +36,7 @@ install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
-    - docker run -d --name terraform-env kreuzwerker/terraform:latest # Run a new container for Terraform
+    - docker info
 
 terraform-init:
   stage: init
