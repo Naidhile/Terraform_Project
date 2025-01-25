@@ -24,13 +24,13 @@ before_script:
   - docker --version  # Verify Docker installation
   - terraform --version || echo "Terraform will be managed by Docker"  # Check if Terraform is installed, else it'll be handled by Docker
 
+
 clone_repository:
   stage: clone
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_WORKING_DIR
-    - cd $TF_WORKING_DIR
-    - ls -al  # List the contents to confirm repository is cloned successfully
+    - git clone https://github.com/Naidhile/Terraform_Project.git
+    - ls -al 
 
 install_dependencies:
   stage: setup
