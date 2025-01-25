@@ -1,8 +1,11 @@
 stages:
+  - clone
+  - setup
   - init
   - validate
   - plan
   - apply
+  - test
 
 variables:
   TF_ENV: "dev"  # Specify the environment (dev, staging, production)
@@ -15,6 +18,19 @@ before_script:
   - curl -fsSL https://get.docker.com | bash  # Install Docker
   - docker --version  # Verify Docker installation
   - terraform --version || echo "Terraform is managed by Docker"
+
+clone_repository:
+  stage: clone
+  script:
+    - echo "Cloning GitHub repository for Terraform configuration files..."
+    - git clone https://github.com/$GITHUB_REPO.git
+
+install_dependencies:
+  stage: setup
+  script:
+    - echo "Setting up environment for Terraform..."
+    - docker run -d --name terraform-env hashicorp/terraform:latest
+
 
 # Stage 1: Initialize Terraform
 terraform-init:
@@ -33,8 +49,7 @@ terraform-validate:
     - echo "Validating Terraform configuration..."
     - cd $TF_WORKING_DIR
     - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 validate
-  only:
-    - main
+
 
 # Stage 3: Plan Terraform Changes
 terraform-plan:
@@ -46,8 +61,6 @@ terraform-plan:
   artifacts:
     paths:
       - $TF_WORKING_DIR/tfplan
-  only:
-    - main
 
 # Stage 4: Apply Terraform Changes
 terraform-apply:
@@ -56,5 +69,10 @@ terraform-apply:
     - echo "Applying Terraform changes..."
     - cd $TF_WORKING_DIR
     - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 apply -auto-approve tfplan
-  only:
-    - main
+
+test_configuration:
+  stage: test
+  script:
+    - echo "Testing deployed infrastructure..."
+    - docker exec -i terraform-env terraform output
+
