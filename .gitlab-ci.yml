@@ -8,20 +8,20 @@ stages:
   - cleanup
 
 variables:
-  TF_ENV: "dev"  # Specify the environment (dev, staging, production)
-  TF_WORKING_DIR: "environment/$TF_ENV"  # Working directory path
-  TF_VERSION: "1.5.0"  # Define the version of Terraform to use
+  TF_ENV: "dev"
+  TF_WORKING_DIR: "environment/$TF_ENV"
+  TF_VERSION: "1.5.0"
 
-# Use the nginx image if required for your pipeline's purpose
-image: nginx:latest  # Using the nginx:latest image
+image: nginx:latest  # Using the nginx image
 
 services:
-  - docker:dind  # Docker-in-Docker service to enable Docker commands
+  - docker:dind
 
-# Clone the repository with Terraform files
 clone_repository:
   stage: clone
   script:
+    - echo "Installing git in nginx container..."
+    - apt-get update && apt-get install -y git  # Install git
     - echo "Cloning GitHub repository for Terraform configuration files..."
     - git clone https://github.com/Naidhile/Terraform_Project
 
