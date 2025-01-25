@@ -25,11 +25,15 @@ clone_repository:
     - echo "Cloning GitHub repository for Terraform configuration files..."
     - git clone https://github.com/Naidhile/Terraform_Project.git
 
+
 install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
+    - docker pull hashicorp/terraform:latest   # Pull the latest image
+    - docker ps -a -q --filter "name=terraform-env" | xargs --no-run-if-empty docker rm -f  # Clean up old containers
     - docker run -d --name terraform-env hashicorp/terraform:latest
+    - docker ps  # Verify the container is running
 
 
 # Stage 1: Initialize Terraform
