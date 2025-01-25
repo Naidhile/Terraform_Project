@@ -30,7 +30,7 @@ install_dependencies:
   stage: setup
   script:
     - apt-get update && apt-get install -y wget unzip curl
-    - wget wget https://releases.hashicorp.com/terraform/latest/terraform_latest_linux_amd64.zip
+    - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_windows_amd64.zip
     - unzip terraform_$TF_VERSION_linux_amd64.zip
     - mv terraform /usr/local/bin/
     - terraform --version  # Verify installation
