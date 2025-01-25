@@ -29,10 +29,10 @@ clone_repository:
 install_dependencies:
   stage: setup
   script:
-    - echo "Setting up environment for Terraform and Nginx..."
-    - docker info  # Ensure Docker-in-Docker is functioning
-    - docker run -d --name nginx-container -p 8080:80 nginx:latest  # Run Nginx service in the background
-    - docker ps  # Check if Nginx container is running
+    - echo "Installing Docker inside the nginx container..."
+    - apt-get update && apt-get install -y docker.io  # Install Docker
+    - docker --version  # Verify Docker is installed
+
 
 # Initialize Terraform configuration
 initialize_terraform:
