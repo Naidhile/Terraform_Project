@@ -1,5 +1,6 @@
 stages:
   - clone
+  - setup
   - initialize
   - plan
   - apply
@@ -7,33 +8,41 @@ stages:
   - cleanup
 
 variables:
-  TF_WORKING_DIR: "/workspace" # Working directory for Terraform
-  GITHUB_REPO_URL: "https://github.com/Naidhile/Terraform_Project"
+  GITHUB_REPO: "githubuser/config-management-repo"
+  TF_WORKING_DIR: "/workspace" # Working directory inside the container
 
-# Clone the repository
 clone_repository:
   stage: clone
-  image: alpine/git  # Lightweight image for Git operations
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone $GITHUB_REPO_URL $TF_WORKING_DIR
+    - git clone https://github.com/Naidhile/Terraform_Project $TF_WORKING_DIR
     - echo "Repository cloned successfully."
-    - ls -al $TF_WORKING_DIR  # Verify contents
+    - ls -al $TF_WORKING_DIR
 
-# Initialize Terraform
+install_dependencies:
+  stage: setup
+  image: nginx:latest  # Using nginx:latest image as per your request
+  script:
+    - echo "Installing dependencies inside nginx container"
+    - apt-get update && apt-get install -y unzip curl  # Installing necessary dependencies
+    - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+    - apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+    - apt-get update
+    - apt-get install terraform  # Install Terraform in the container
+    - terraform --version  # Verify installation
+
 initialize_terraform:
   stage: initialize
-  image: kreuzwerker/docker:2.0.0  # Terraform image
+  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Initializing Terraform configuration..."
     - cd $TF_WORKING_DIR
     - terraform init
     - echo "Terraform initialization completed."
 
-# Plan Terraform infrastructure changes
 plan_infrastructure:
   stage: plan
-  image: kreuzwerker/docker:2.0.0
+  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Creating Terraform execution plan..."
     - cd $TF_WORKING_DIR
@@ -41,32 +50,29 @@ plan_infrastructure:
     - echo "Terraform plan created successfully."
   artifacts:
     paths:
-      - $TF_WORKING_DIR/tfplan  # Save the tfplan file as an artifact
+      - $TF_WORKING_DIR/tfplan
 
-# Apply Terraform configuration
 apply_configuration:
   stage: apply
-  image: kreuzwerker/docker:2.0.0
+  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Applying Terraform configuration..."
     - cd $TF_WORKING_DIR
     - terraform apply -auto-approve tfplan
     - echo "Terraform configuration applied successfully."
 
-# Test the deployed infrastructure
 test_configuration:
   stage: test
-  image: kreuzwerker/docker:2.0.0
+  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Testing deployed infrastructure..."
     - cd $TF_WORKING_DIR
     - terraform output
     - echo "Terraform output fetched successfully."
 
-# Cleanup stage
 cleanup:
   stage: cleanup
-  image: alpine
+  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Cleaning up the environment..."
     - rm -rf $TF_WORKING_DIR
