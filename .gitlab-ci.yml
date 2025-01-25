@@ -11,10 +11,10 @@ variables:
   GITHUB_REPO: "Naidhile/Terraform_Project"  # Your GitHub repository for Terraform configuration
   DOCKER_USER: "Naidhile"  # Docker username for pushing images if needed
 
-image: ruby:3.1  # Using ruby:3.1 image
+image: docker:latest  # Using the docker:latest image for Docker-related tasks
 
 services:
-  - docker:dind  # Enable Docker-in-Docker service
+  - docker:dind  # Docker-in-Docker service to run Docker commands inside the container
 
 clone_repository:
   stage: clone
@@ -26,34 +26,34 @@ install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
-    - docker pull hashicorp/terraform:latest  # Now Docker can be used to pull the image
+    - docker pull hashicorp/terraform:latest  # Ensure the latest Terraform image is available
 
 initialize_terraform:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - docker run -i hashicorp/terraform:latest terraform init
+    - docker run --rm -v $(pwd):/workspace -w /workspace hashicorp/terraform:latest init
 
 plan_infrastructure:
   stage: plan
   script:
     - echo "Creating Terraform execution plan..."
-    - docker run -i hashicorp/terraform:latest terraform plan -out=tfplan
+    - docker run --rm -v $(pwd):/workspace -w /workspace hashicorp/terraform:latest plan -out=tfplan
 
 apply_configuration:
   stage: apply
   script:
     - echo "Applying Terraform configuration..."
-    - docker run -i hashicorp/terraform:latest terraform apply -auto-approve tfplan
+    - docker run --rm -v $(pwd):/workspace -w /workspace hashicorp/terraform:latest apply -auto-approve tfplan
 
 test_configuration:
   stage: test
   script:
     - echo "Testing deployed infrastructure..."
-    - docker run -i hashicorp/terraform:latest terraform output
+    - docker run --rm -v $(pwd):/workspace -w /workspace hashicorp/terraform:latest output
 
 cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up the environment..."
-    - docker system prune -f  # Clean up unused Docker images
+    - docker system prune -af  # Clean up unused Docker images and containers
