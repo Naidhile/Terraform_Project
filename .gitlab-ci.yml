@@ -11,6 +11,11 @@ variables:
   GITHUB_REPO: "Naidhile/Terraform_Project"  # Your GitHub repository for Terraform configuration
   DOCKER_USER: "Naidhile"  # Docker username for pushing images if needed
 
+image: ruby:3.1  # Using ruby:3.1 image
+
+services:
+  - docker:dind  # Enable Docker-in-Docker service
+
 clone_repository:
   stage: clone
   script:
@@ -21,35 +26,34 @@ install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
-    - docker pull hashicorp/terraform:latest  # Pull the latest Terraform Docker image
-    - docker run -d --name terraform-env -v $CI_PROJECT_DIR:/workspace hashicorp/terraform:latest  # Mount the repo directory to the container
+    - docker pull hashicorp/terraform:latest  # Now Docker can be used to pull the image
 
 initialize_terraform:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - docker exec -i terraform-env terraform init /workspace  # Run terraform init in the workspace
+    - docker run -i hashicorp/terraform:latest terraform init
 
 plan_infrastructure:
   stage: plan
   script:
     - echo "Creating Terraform execution plan..."
-    - docker exec -i terraform-env terraform plan -out=/workspace/tfplan /workspace  # Generate a plan in the workspace
+    - docker run -i hashicorp/terraform:latest terraform plan -out=tfplan
 
 apply_configuration:
   stage: apply
   script:
     - echo "Applying Terraform configuration..."
-    - docker exec -i terraform-env terraform apply -auto-approve /workspace/tfplan  # Apply the plan in the workspace
+    - docker run -i hashicorp/terraform:latest terraform apply -auto-approve tfplan
 
 test_configuration:
   stage: test
   script:
     - echo "Testing deployed infrastructure..."
-    - docker exec -i terraform-env terraform output  # Show the output from Terraform
+    - docker run -i hashicorp/terraform:latest terraform output
 
 cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up the environment..."
-    - docker rm -f terraform-env  # Remove the container after use
+    - docker system prune -f  # Clean up unused Docker images
