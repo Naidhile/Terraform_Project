@@ -23,6 +23,7 @@ install_dependencies:
   script:
     - echo "Setting up environment for Terraform..."
     - docker run -d --name terraform-env kreuzwerker/terraform:latest
+    - docker ps  # Ensure the container is running
 
 initialize_terraform:
   stage: initialize
@@ -38,7 +39,7 @@ plan_infrastructure:
 
 apply_configuration:
   stage: apply
-script:
+  script:
     - echo "Applying Terraform configuration..."
     - docker exec -i terraform-env terraform apply -auto-approve tfplan
 
@@ -52,4 +53,4 @@ cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up the environment..."
-    - docker rm -f terraform-env
+    - docker rm -f terraform-env
