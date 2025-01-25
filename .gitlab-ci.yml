@@ -29,12 +29,14 @@ clone_repository:
 install_dependencies:
   stage: setup
   script:
-    - apt-get update && apt-get install -y wget unzip curl
-    - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_windows_amd64.zip
-    - unzip terraform_1.5.0_windows_amd64.zip
+    - apt-get update && apt-get install -y wget unzip curl # Download Terraform for Linux
+    - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+    - unzip terraform_1.5.0_linux_amd64.zip
+    - ls -l
     - mv terraform /usr/local/bin/
     - terraform --version  # Verify installation
     - docker --version  # Verify Docker installation
+
 initialize_terraform:
   stage: initialize
   script:
