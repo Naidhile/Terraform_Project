@@ -12,16 +12,15 @@ variables:
   TF_WORKING_DIR: "environment/$TF_ENV"
   TF_VERSION: "1.5.0"
 
-# Consider using a custom image or an image that has Terraform and Docker pre-installed
-image: hashicorp/terraform:1.5.0  # Using a Terraform image instead of nginx
+image: nginx:latest  # Using the nginx image
 
 services:
-  - docker:dind  # Docker-in-Docker service for running Docker commands
+  - docker:dind
 
 clone_repository:
   stage: clone
   script:
-    - echo "Installing git in container..."
+    - echo "Installing git in nginx container..."
     - apt-get update && apt-get install -y git  # Install git
     - echo "Cloning GitHub repository for Terraform configuration files..."
     - git clone https://github.com/Naidhile/Terraform_Project
@@ -29,9 +28,13 @@ clone_repository:
 install_dependencies:
   stage: setup
   script:
-    - echo "Installing Docker inside the container..."
-    - apt-get update && apt-get install -y docker.io  # Install Docker
-    - docker --version  # Verify Docker is installed
+    - echo "Installing Docker and Terraform inside the container..."
+    - apt-get update && apt-get install -y docker.io wget unzip
+    - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip  # Download Terraform
+    - unzip terraform_1.5.0_linux_amd64.zip  # Unzip Terraform binary
+    - mv terraform /usr/local/bin/  # Move it to the binary path
+    - terraform --version  # Verify Terraform installation
+    - docker --version  # Verify Docker installation
 
 initialize_terraform:
   stage: initialize
@@ -64,4 +67,3 @@ cleanup:
     - echo "Cleaning up the environment..."
     - docker ps -a  # Show all containers, check if any container is hanging
     - docker rm -f $(docker ps -aq)  # Clean up all containers to avoid any leftovers
-
