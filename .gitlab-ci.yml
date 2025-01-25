@@ -56,6 +56,5 @@ terraform-apply:
     - echo "Applying Terraform changes..."
     - cd $TF_WORKING_DIR
     - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 apply -auto-approve tfplan
-  when: manual
   only:
     - main
