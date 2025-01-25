@@ -8,13 +8,8 @@ stages:
   - cleanup
 
 variables:
-  GITHUB_REPO: "Naidhile/Terraform_Project"  # Your GitHub repository for Terraform configuration
-  DOCKER_USER: "Naidhile"  # Docker username for pushing images if needed
-
-image: docker:latest  # Using the docker:latest image for Docker-related tasks
-
-services:
-  - docker:dind  # Docker-in-Docker service to run Docker commands inside the container
+  GITHUB_REPO: "Naidhile/Terraform_Project"
+  DOCKER_USER: "Naidhile"
 
 clone_repository:
   stage: clone
@@ -26,34 +21,34 @@ install_dependencies:
   stage: setup
   script:
     - echo "Setting up environment for Terraform..."
-    - docker pull kreuzwerker/terraform:latest  # Ensure the latest Terraform image from kreuzwerker
+    - echo docker run -d --name terraform-env hashicorp/terraform:latest
 
 initialize_terraform:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/terraform:latest init  # Use kreuzwerker/terraform
+    - echo docker exec -i terraform-env terraform init
 
 plan_infrastructure:
   stage: plan
   script:
     - echo "Creating Terraform execution plan..."
-    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/terraform:latest plan -out=tfplan  # Use kreuzwerker/terraform
+    - echo docker exec -i terraform-env terraform plan -out=tfplan
 
 apply_configuration:
   stage: apply
   script:
     - echo "Applying Terraform configuration..."
-    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/terraform:latest apply -auto-approve tfplan  # Use kreuzwerker/terraform
+    - echo docker exec -i terraform-env terraform apply -auto-approve tfplan
 
 test_configuration:
   stage: test
   script:
     - echo "Testing deployed infrastructure..."
-    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/terraform:latest output  # Use kreuzwerker/terraform
+    - echo docker exec -i terraform-env terraform output
 
 cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up the environment..."
-    - docker system prune -af  # Clean up unused Docker images and containers
+    -  echo docker rm -f terraform-env
