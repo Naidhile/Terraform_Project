@@ -1,77 +1,79 @@
 stages:
   - clone
   - setup
-  - initialize
+  - init
+  - validate
   - plan
   - apply
   - test
-  - cleanup
 
 variables:
-  GITHUB_REPO: "githubuser/config-management-repo"
-  TF_WORKING_DIR: "/workspace" # Working directory inside the container
+  TF_ENV: "dev"  # Specify the environment (dev, staging, production)
+  TF_WORKING_DIR: "environment/$TF_ENV"  # Working directory path
+  TF_VERSION: "1.5.0"  # Define the version of Terraform to use
+
+image: nginx:latest  # Use nginx latest image
+
+services:
+  - docker:dind  # Docker-in-Docker service to enable Docker commands
+
+before_script:
+  - apt-get update && apt-get install -y unzip curl
+  - echo "Installing Docker..."
+  - curl -fsSL https://get.docker.com | bash  # Install Docker
+  - docker --version  # Verify Docker installation
+  - terraform --version || echo "Terraform will be managed by Docker"  # Check if Terraform is installed, else it'll be handled by Docker
 
 clone_repository:
   stage: clone
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/Naidhile/Terraform_Project $TF_WORKING_DIR
-    - echo "Repository cloned successfully."
-    - ls -al $TF_WORKING_DIR
+    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_WORKING_DIR
+    - cd $TF_WORKING_DIR
+    - ls -al  # List the contents to confirm repository is cloned successfully
 
 install_dependencies:
   stage: setup
-  image: nginx:latest  # Using nginx:latest image as per your request
   script:
-    - echo "Installing dependencies inside nginx container"
-    - apt-get update && apt-get install -y unzip curl wget  # Install wget for downloading Terraform
-    - wget https://releases.hashicorp.com/terraform/1.4.6/terraform_1.4.6_linux_amd64.zip -P /tmp  # Download Terraform zip
-    - unzip /tmp/terraform_1.4.6_linux_amd64.zip -d /usr/local/bin  # Unzip and place in /usr/local/bin
-    - terraform --version  # Verify Terraform installation
+    - echo "Setting up environment for Terraform..."
+    - docker pull kreuzwerker/docker:2.0.0  # Pull the image for running Terraform
+    - docker ps -a -q --filter "name=terraform-env" | xargs --no-run-if-empty docker rm -f  # Clean up old containers
+    - docker run -d --name terraform-env kreuzwerker/docker:2.0.0  # Run a new container for Terraform
+    - docker ps  # Verify the container is running
 
-initialize_terraform:
-  stage: initialize
-  image: nginx:latest  # Continuing with nginx:latest image
+terraform-init:
+  stage: init
   script:
-    - echo "Initializing Terraform configuration..."
+    - echo "Initializing Terraform for $TF_ENV environment..."
     - cd $TF_WORKING_DIR
-    - terraform init
-    - echo "Terraform initialization completed."
+    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 init  # Initialize Terraform in the container
 
-plan_infrastructure:
+terraform-validate:
+  stage: validate
+  script:
+    - echo "Validating Terraform configuration..."
+    - cd $TF_WORKING_DIR
+    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 validate  # Validate the Terraform configuration
+
+terraform-plan:
   stage: plan
-  image: nginx:latest  # Continuing with nginx:latest image
   script:
-    - echo "Creating Terraform execution plan..."
+    - echo "Planning Terraform changes..."
     - cd $TF_WORKING_DIR
-    - terraform plan -out=tfplan
-    - echo "Terraform plan created successfully."
+    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 plan -out=tfplan  # Plan the changes
   artifacts:
     paths:
-      - $TF_WORKING_DIR/tfplan
+      - $TF_WORKING_DIR/tfplan  # Save the plan file as an artifact
 
-apply_configuration:
+terraform-apply:
   stage: apply
-  image: nginx:latest  # Continuing with nginx:latest image
   script:
-    - echo "Applying Terraform configuration..."
+    - echo "Applying Terraform changes..."
     - cd $TF_WORKING_DIR
-    - terraform apply -auto-approve tfplan
-    - echo "Terraform configuration applied successfully."
+    - docker run --rm -v $(pwd):/workspace -w /workspace kreuzwerker/docker:2.0.0 apply -auto-approve tfplan  # Apply the plan automatically
 
 test_configuration:
   stage: test
-  image: nginx:latest  # Continuing with nginx:latest image
   script:
     - echo "Testing deployed infrastructure..."
-    - cd $TF_WORKING_DIR
-    - terraform output
-    - echo "Terraform output fetched successfully."
-
-cleanup:
-  stage: cleanup
-  image: nginx:latest  # Continuing with nginx:latest image
-  script:
-    - echo "Cleaning up the environment..."
-    - rm -rf $TF_WORKING_DIR
-    - echo "Cleanup completed."
+    - docker exec -i terraform-env terraform output  # Test and fetch Terraform output from the container
