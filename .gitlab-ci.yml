@@ -1,6 +1,5 @@
 stages:
   - clone
-  - setup
   - initialize
   - plan
   - apply
@@ -8,66 +7,67 @@ stages:
   - cleanup
 
 variables:
-  GITHUB_REPO: "githubuser/config-management-repo"
-  TF_WORKING_DIR: "/workspace" # Working directory inside the container
+  TF_WORKING_DIR: "/workspace" # Working directory for Terraform
+  GITHUB_REPO_URL: "https://github.com/Naidhile/Terraform_Project"
 
+# Clone the repository
 clone_repository:
   stage: clone
+  image: alpine/git  # Lightweight image for Git operations
   script:
     - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/Naidhile/Terraform_Project
+    - git clone $GITHUB_REPO_URL $TF_WORKING_DIR
     - echo "Repository cloned successfully."
-    - ls -al  # Verify contents
+    - ls -al $TF_WORKING_DIR  # Verify contents
 
-install_dependencies:
-  stage: setup
-  script:
-    - echo "Pulling kreuzwerker/docker image for Terraform..."
-    - docker pull kreuzwerker/docker:2.0.0
-
+# Initialize Terraform
 initialize_terraform:
   stage: initialize
+  image: kreuzwerker/docker:2.0.0  # Terraform image
   script:
     - echo "Initializing Terraform configuration..."
-    - docker run --rm \
-        -v $(pwd):$TF_WORKING_DIR \
-        -w $TF_WORKING_DIR \
-        kreuzwerker/docker:2.0.0 init
+    - cd $TF_WORKING_DIR
+    - terraform init
     - echo "Terraform initialization completed."
 
+# Plan Terraform infrastructure changes
 plan_infrastructure:
   stage: plan
+  image: kreuzwerker/docker:2.0.0
   script:
     - echo "Creating Terraform execution plan..."
-    - docker run --rm \
-        -v $(pwd):$TF_WORKING_DIR \
-        -w $TF_WORKING_DIR \
-        kreuzwerker/docker:2.0.0 plan -out=tfplan
+    - cd $TF_WORKING_DIR
+    - terraform plan -out=tfplan
     - echo "Terraform plan created successfully."
+  artifacts:
+    paths:
+      - $TF_WORKING_DIR/tfplan  # Save the tfplan file as an artifact
 
+# Apply Terraform configuration
 apply_configuration:
   stage: apply
+  image: kreuzwerker/docker:2.0.0
   script:
     - echo "Applying Terraform configuration..."
-    - docker run --rm \
-        -v $(pwd):$TF_WORKING_DIR \
-        -w $TF_WORKING_DIR \
-        kreuzwerker/docker:2.0.0 apply -auto-approve tfplan
+    - cd $TF_WORKING_DIR
+    - terraform apply -auto-approve tfplan
     - echo "Terraform configuration applied successfully."
 
+# Test the deployed infrastructure
 test_configuration:
   stage: test
+  image: kreuzwerker/docker:2.0.0
   script:
     - echo "Testing deployed infrastructure..."
-    - docker run --rm \
-        -v $(pwd):$TF_WORKING_DIR \
-        -w $TF_WORKING_DIR \
-        kreuzwerker/docker:2.0.0 output
+    - cd $TF_WORKING_DIR
+    - terraform output
     - echo "Terraform output fetched successfully."
 
+# Cleanup stage
 cleanup:
   stage: cleanup
+  image: alpine
   script:
     - echo "Cleaning up the environment..."
-    - docker ps -a -q --filter "name=terraform-env" | xargs --no-run-if-empty docker rm -f
+    - rm -rf $TF_WORKING_DIR
     - echo "Cleanup completed."
