@@ -12,53 +12,45 @@ variables:
   TF_WORKING_DIR: "environment/$TF_ENV"
   TF_VERSION: "1.5.0"
 
-image: nginx:latest  # Using the nginx image
+# Consider using a custom image or an image that has Terraform and Docker pre-installed
+image: hashicorp/terraform:1.5.0  # Using a Terraform image instead of nginx
 
 services:
-  - docker:dind
+  - docker:dind  # Docker-in-Docker service for running Docker commands
 
 clone_repository:
   stage: clone
   script:
-    - echo "Installing git in nginx container..."
+    - echo "Installing git in container..."
     - apt-get update && apt-get install -y git  # Install git
     - echo "Cloning GitHub repository for Terraform configuration files..."
     - git clone https://github.com/Naidhile/Terraform_Project
 
-# Set up the environment and verify Nginx setup
-
 install_dependencies:
   stage: setup
   script:
-    - echo "Installing Docker inside the nginx container..."
+    - echo "Installing Docker inside the container..."
     - apt-get update && apt-get install -y docker.io  # Install Docker
     - docker --version  # Verify Docker is installed
 
-
-# Initialize Terraform configuration
 initialize_terraform:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - docker exec -i terraform-env terraform init
+    - terraform init $TF_WORKING_DIR  # Run terraform init in the current environment
 
-
-
-# Create Terraform execution plan
 plan_infrastructure:
   stage: plan
   script:
     - echo "Creating Terraform execution plan..."
     - terraform plan -out=tfplan $TF_WORKING_DIR  # Generate a plan for Terraform
 
-# Apply the Terraform configuration
 apply_configuration:
   stage: apply
   script:
     - echo "Applying Terraform configuration..."
     - terraform apply -auto-approve $TF_WORKING_DIR/tfplan  # Apply the plan
 
-# Test the deployed infrastructure (you can test Nginx here too)
 test_configuration:
   stage: test
   script:
@@ -66,10 +58,10 @@ test_configuration:
     - terraform output  # Show the output from Terraform
     - curl http://localhost:8080  # Check if Nginx is running and serving content on port 8080
 
-# Cleanup the environment (clean up Nginx container as well)
 cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up the environment..."
     - docker ps -a  # Show all containers, check if any container is hanging
     - docker rm -f $(docker ps -aq)  # Clean up all containers to avoid any leftovers
+
