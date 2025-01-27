@@ -39,9 +39,10 @@ clone:
       chmod -R 777 /builds/naidhilebhuvana/Terraform_Project  # Give read/write/execute permissions to all users
       echo "Current directory: $(pwd)"
       ls -la /builds/naidhilebhuvana/Terraform_Project  # Check permissions
-      echo "Cloning the repository..."
+      echo "Cleaning up existing directory..."
       rm -rf /builds/naidhilebhuvana/Terraform_Project  # Clean up any existing files
       mkdir -p /builds/naidhilebhuvana/Terraform_Project  # Ensure directory exists
+      echo "Cloning the repository..."
       git clone https://github.com/Naidhile/Terraform_Project.git /builds/naidhilebhuvana/Terraform_Project
       cd /builds/naidhilebhuvana/Terraform_Project
       echo "Repository cloned."
