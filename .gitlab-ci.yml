@@ -61,9 +61,10 @@ initialize:
 
 plan:
   stage: plan
-  image: docker:20.10.7
+  image: alpine:latest  # Use Alpine with curl
   script:
     - echo "Installing Terraform..."
+    - apk add --no-cache curl unzip  # Install curl and unzip on Alpine
     - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
     - unzip terraform_${TF_VERSION}_linux_amd64.zip
     - mv terraform /usr/local/bin/
