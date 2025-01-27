@@ -37,7 +37,7 @@ clone:
     - |
       echo "Cloning the repository..."
       echo "Current directory: $(pwd)"  # Print current working directory
-      rm -rf $TF_PROJECT_DIR  # Remove any existing contents in the directory
+      mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
       git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
       cd $TF_PROJECT_DIR
       echo "Repository cloned."
