@@ -34,16 +34,17 @@ before_script:
 clone:
   stage: clone
   script:
-    - echo "Checking current directory: $(pwd)"
-    - ls -la  # List files in the current directory to see if there are any permission issues
-    - echo "Cloning the repository..."
-    - rm -rf $TF_PROJECT_DIR  # Remove any existing contents in the directory
-    - mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
-    - echo "Directory after creation: $(ls -la)"
-    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
-    - cd $TF_PROJECT_DIR
-    - echo "Repository cloned."
-    - echo "Successfully cloned repository."
+    - |
+      echo "Checking current directory: $(pwd)"
+      ls -la  # List files in the current directory to see if there are any permission issues
+      echo "Cloning the repository..."
+      rm -rf $TF_PROJECT_DIR  # Remove any existing contents in the directory
+      mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
+      echo "Directory after creation: $(ls -la)"
+      git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+      cd $TF_PROJECT_DIR
+      echo "Repository cloned."
+      echo "Successfully cloned repository."
 
 setup:
   stage: setup
