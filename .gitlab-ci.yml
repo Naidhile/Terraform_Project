@@ -12,7 +12,9 @@ variables:
   TF_PROJECT_DIR: "/builds/naidhilebhuvana/Terraform_Project"  # GitLab Runner's path
 
 services:
-  - docker:19.03.12-dind  # Use Docker-in-Docker (DinD) for your CI job
+  - name: docker:19.03.12-dind
+    alias: docker
+    command: ["--host=tcp://0.0.0.0:2375"]
 
 before_script:
   - echo "Installing Terraform..."
@@ -52,7 +54,6 @@ initialize:
     - echo "Terraform initialization complete."
 
 plan:
-  stage: plan
   script:
     - echo "Installing Terraform..."
     - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
@@ -61,7 +62,7 @@ plan:
     - terraform --version
     - echo "Initializing Terraform..."
     - cd $TF_PROJECT_DIR
-    - terraform init  # Add this line to initialize Terraform
+    - terraform init
     - echo "Running Terraform plan..."
     - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082"
 
