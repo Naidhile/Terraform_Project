@@ -60,11 +60,7 @@ plan:
   script:
     - echo "Running Terraform plan..."
     - cd $TF_PROJECT_DIR
-    - terraform plan -chdir=$TF_PROJECT_DIR -out=plan.tfout \
-        -var="container_name=my_container" \
-        -var="image=nginx:latest" \
-        -var="external_port=8082" \
-        -input=false
+    - terraform plan -chdir=$TF_PROJECT_DIR -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
     - ls -l plan.tfout  # Check if the plan file was created successfully
 
 apply:
