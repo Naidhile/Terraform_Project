@@ -5,3 +5,4 @@ output "docker_container_name" {
 output "docker_container_ip" {
   value = module.docker_container.container_ip
 }
+

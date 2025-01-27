@@ -8,7 +8,8 @@ variable "image" {
   type        = string
 }
 
-variable "ports" {
-  description = "The ports to map for the container"
-  type        = list(string)
+variable "external_port" {
+  description = "The external port to expose the container"
+  type        = number
 }
+
