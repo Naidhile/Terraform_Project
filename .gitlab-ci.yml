@@ -8,27 +8,27 @@ stages:
   - cleanup
 
 variables:
-  TF_VERSION: "1.10.5"  # Update to the latest version of Terraform
-  TF_PROJECT_DIR: "/builds/naidhilebhuvana/Terraform_Project"  # GitLab Runner's path
+  TF_VERSION: "1.10.5"
+  TF_PROJECT_DIR: "/builds/naidhilebhuvana/Terraform_Project"
 
-image: alpine:latest  # Using Alpine base image
+image: alpine:latest
 
 services:
-  - name: docker:20.10.7-dind  # Docker-in-Docker service
+  - name: docker:20.10.7-dind
     alias: docker
     command: ["--host=tcp://0.0.0.0:2375"]
 
 before_script:
   - echo "Installing required tools..."
-  - apk add --no-cache curl unzip git docker  # Ensure required tools are installed
+  - apk add --no-cache curl unzip git docker
   - echo "Installing Terraform..."
   - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
-  - unzip -o terraform_${TF_VERSION}_linux_amd64.zip  # Force overwrite files during unzip
-  - mv terraform /usr/local/bin/  # Move Terraform binary to PATH
-  - terraform --version  # Verify Terraform installation
-  - export DOCKER_HOST=tcp://docker:2375  # Ensure Docker is accessible
+  - unzip -o terraform_${TF_VERSION}_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+  - terraform --version
+  - export DOCKER_HOST=tcp://docker:2375  # Make sure it's using the correct Docker service address
   - echo "Waiting for Docker daemon to initialize..."
-  - sleep 25  # Optional: Wait for Docker to fully initialize
+  - sleep 30  # Allow Docker time to initialize fully
   - docker ps || (echo "Docker is not running correctly" && exit 1)
 
 clone:
@@ -36,12 +36,12 @@ clone:
   script:
     - |
       echo "Cleaning up existing directory..."
-      rm -rf /builds/naidhilebhuvana/Terraform_Project  # Clean up any existing files
-      mkdir -p /builds/naidhilebhuvana/Terraform_Project  # Ensure directory exists
-      chmod -R 777 /builds/naidhilebhuvana/Terraform_Project  # Ensure proper permissions
-      echo "Current directory: $(pwd)"  # Print the current directory for debugging
+      rm -rf /builds/naidhilebhuvana/Terraform_Project
+      mkdir -p /builds/naidhilebhuvana/Terraform_Project
+      chmod -R 777 /builds/naidhilebhuvana/Terraform_Project
+      echo "Current directory: $(pwd)"
       echo "Cloning the repository..."
-      cd /builds/naidhilebhuvana/Terraform_Project  # Explicitly move to the directory
+      cd /builds/naidhilebhuvana/Terraform_Project
       git clone https://github.com/Naidhile/Terraform_Project.git .
       echo "Repository cloned."
 
@@ -50,7 +50,7 @@ setup:
   script:
     - |
       echo "Setting up Terraform directory..."
-      cd $TF_PROJECT_DIR  # Change to the cloned directory
+      cd $TF_PROJECT_DIR
       echo "Setup complete."
 
 initialize:
@@ -68,14 +68,14 @@ plan:
       terraform init
       echo "Running Terraform plan..."
       terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
-      ls -l plan.tfout  # Check if the plan file was created successfully
+      ls -l plan.tfout
 
 apply:
   stage: apply
   script:
     - |
       echo "Applying Terraform plan..."
-      ls -l plan.tfout  # Ensure the plan file exists
+      ls -l plan.tfout
       terraform apply -auto-approve plan.tfout
       echo "Terraform apply complete."
 
