@@ -51,10 +51,16 @@ initialize:
 plan:
   stage: plan
   script:
-    - echo "Running Terraform plan..."
+    - echo "Installing Terraform..."
+    - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+    - unzip terraform_${TF_VERSION}_linux_amd64.zip
+    - mv terraform /usr/local/bin/
+    - terraform --version
+    - echo "Initializing Terraform..."
     - cd $TF_PROJECT_DIR
+    - terraform init  # Add this line to initialize Terraform
+    - echo "Running Terraform plan..."
     - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082"
-    - echo "Terraform plan complete."
 
 apply:
   stage: apply
