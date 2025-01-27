@@ -30,7 +30,7 @@ setup:
   stage: setup
   script:
     - echo "Setting up Terraform directory..."
-    - mkdir -p $TF_PROJECT_DIR
+    - mkdir -p $TF_PROJECT_DIR  # Create the directory if it doesn't exist
     - cd $TF_PROJECT_DIR
     - echo "Setup complete."
 
@@ -38,6 +38,7 @@ initialize:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
+    - mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
     - cd $TF_PROJECT_DIR
     - terraform init
     - echo "Terraform initialization complete."
