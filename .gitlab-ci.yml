@@ -20,16 +20,15 @@ services:
 
 before_script:
   - echo "Installing required tools..."
-  - apk add --no-cache curl unzip git docker  # Install Git, curl, unzip, and Docker
+  - apk add --no-cache curl unzip git docker  # Ensure required tools are installed
   - echo "Installing Terraform..."
   - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
-  - unzip terraform_${TF_VERSION}_linux_amd64.zip
-  - mv terraform /usr/local/bin/
-  - terraform --version
-  - export DOCKER_HOST=tcp://docker:2375  # Ensure Docker is accessible to Terraform
+  - unzip -o terraform_${TF_VERSION}_linux_amd64.zip  # Force overwrite files during unzip
+  - mv terraform /usr/local/bin/  # Move Terraform binary to PATH
+  - terraform --version  # Verify Terraform installation
+  - export DOCKER_HOST=tcp://docker:2375  # Ensure Docker is accessible
   - echo "Waiting for Docker daemon to initialize..."
-  - sleep 30  # Add a short wait time for Docker to fully initialize
-  - docker info  # Verify Docker is available
+  - sleep 30  # Optional: Wait for Docker to fully initialize
   - docker ps || (echo "Docker is not running correctly" && exit 1)
 
 clone:
