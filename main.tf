@@ -12,7 +12,8 @@ module "docker_container" {
 }
 
 provider "docker" {
-  host = "tcp://localhost:2375"
+  host = "tcp://localhost:2375"  # Change docker to localhost
 }
+
 
 

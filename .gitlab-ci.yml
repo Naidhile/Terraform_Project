@@ -26,7 +26,7 @@ before_script:
   - unzip -o terraform_${TF_VERSION}_linux_amd64.zip
   - mv terraform /usr/local/bin/
   - terraform --version
-  - export DOCKER_HOST=tcp://docker:2375  # Make sure it's using the correct Docker service address
+  - export DOCKER_HOST=tcp://docker:2375  # Docker service address
   - echo "Waiting for Docker daemon to initialize..."
   - sleep 30  # Allow Docker time to initialize fully
   - docker ps || (echo "Docker is not running correctly" && exit 1)
@@ -65,7 +65,6 @@ plan:
   stage: plan
   script:
     - |
-      terraform init
       echo "Running Terraform plan..."
       terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
       ls -l plan.tfout
@@ -83,8 +82,8 @@ test:
   stage: test
   script:
     - |
-      echo "Running tests..."
-      terraform show
+      echo "Validating Terraform configuration..."
+      terraform validate
       echo "Tests complete."
 
 cleanup:
