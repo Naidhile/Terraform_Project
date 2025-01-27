@@ -1,18 +1,32 @@
-name: Trigger GitLab Pipeline
+name: Terraform CI/CD Pipeline
 
 on:
   push:
     branches:
-      - master  # Trigger when code is pushed to the master branch
+      - master
 
 jobs:
-  trigger:
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Trigger GitLab Pipeline
-        run: |
-          curl --request POST --form token=${{ secrets.GITLAB_TRIGGER_TOKEN }} --form ref=master https://gitlab.com/api/v4/projects/66061264/trigger/pipeline
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.0.0"
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan -out=plan.tfout
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve plan.tfout
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: terraform destroy -auto-approve
