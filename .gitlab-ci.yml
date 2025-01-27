@@ -41,8 +41,8 @@ clone:
       chmod -R 777 /builds/naidhilebhuvana/Terraform_Project  # Ensure proper permissions
       echo "Current directory: $(pwd)"  # Print the current directory for debugging
       echo "Cloning the repository..."
-      git clone https://github.com/Naidhile/Terraform_Project.git /builds/naidhilebhuvana/Terraform_Project
-      cd /builds/naidhilebhuvana/Terraform_Project
+      cd /builds/naidhilebhuvana/Terraform_Project  # Explicitly move to the directory
+      git clone https://github.com/Naidhile/Terraform_Project.git .
       echo "Repository cloned."
 
 setup:
