@@ -18,6 +18,11 @@ services:
     alias: docker
     command: ["--host=tcp://0.0.0.0:2375"]
 
+cache:
+  key: terraform
+  paths:
+    - .terraform/
+
 before_script:
   - echo "Installing required tools..."
   - apk add --no-cache curl unzip git docker
@@ -58,7 +63,8 @@ initialize:
   script:
     - |
       echo "Initializing Terraform..."
-      terraform init
+      cd $TF_PROJECT_DIR
+      terraform init -reconfigure
       echo "Terraform initialization complete."
 
 plan:
@@ -66,6 +72,7 @@ plan:
   script:
     - |
       echo "Running Terraform plan..."
+      cd $TF_PROJECT_DIR
       terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
       ls -l plan.tfout
 
@@ -74,7 +81,7 @@ apply:
   script:
     - |
       echo "Applying Terraform plan..."
-      ls -l plan.tfout
+      cd $TF_PROJECT_DIR
       terraform apply -auto-approve plan.tfout
       echo "Terraform apply complete."
 
@@ -83,6 +90,7 @@ test:
   script:
     - |
       echo "Validating Terraform configuration..."
+      cd $TF_PROJECT_DIR
       terraform validate
       echo "Tests complete."
 
@@ -91,5 +99,6 @@ cleanup:
   script:
     - |
       echo "Cleaning up Terraform state..."
+      cd $TF_PROJECT_DIR
       terraform destroy -auto-approve
       echo "Cleanup complete."
