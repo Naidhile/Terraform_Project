@@ -12,7 +12,7 @@ variables:
   TF_PROJECT_DIR: "/builds/naidhilebhuvana/Terraform_Project"  # GitLab Runner's path
 
 services:
-  - name: docker:19.03.12-dind
+  - name: docker:20.10.7-dind  # Updated Docker version
     alias: docker
     command: ["--host=tcp://0.0.0.0:2375"]
 
