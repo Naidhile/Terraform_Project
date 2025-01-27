@@ -35,6 +35,7 @@ clone:
   stage: clone
   script:
     - echo "Cloning the repository..."
+    - rm -rf $TF_PROJECT_DIR  # Remove any existing directory to avoid the error
     - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
     - cd $TF_PROJECT_DIR
     - echo "Repository cloned successfully."
