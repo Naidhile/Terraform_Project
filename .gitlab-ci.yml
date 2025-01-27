@@ -53,7 +53,7 @@ plan:
   script:
     - echo "Running Terraform plan..."
     - cd $TF_PROJECT_DIR
-    - terraform plan -out=plan.tfout
+    - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082"
     - echo "Terraform plan complete."
 
 apply:
