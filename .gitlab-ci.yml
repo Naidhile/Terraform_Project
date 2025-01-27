@@ -17,6 +17,8 @@ services:
     command: ["--host=tcp://0.0.0.0:2375"]
 
 before_script:
+  - echo "Installing required tools..."
+  - apk add --no-cache curl unzip  # Install curl and unzip
   - echo "Installing Terraform..."
   - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
   - unzip terraform_${TF_VERSION}_linux_amd64.zip
