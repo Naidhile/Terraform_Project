@@ -18,14 +18,14 @@ services:
 
 before_script:
   - echo "Installing required tools..."
-  - apk add --no-cache curl unzip  # Install curl and unzip
+  - apk add --no-cache curl unzip  # Alpine's package manager
   - echo "Installing Terraform..."
   - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
   - unzip terraform_${TF_VERSION}_linux_amd64.zip
   - mv terraform /usr/local/bin/
   - terraform --version
   - echo "Installing Docker..."
-  - apt-get update && apt-get install -y docker.io  # Install Docker in the Ruby container
+  - apk add --no-cache docker  # Install Docker in Alpine
   - export DOCKER_HOST=tcp://docker:2375
   - echo "Waiting for Docker daemon to initialize..."
   - sleep 30  # Add a short wait time for Docker to fully initialize
