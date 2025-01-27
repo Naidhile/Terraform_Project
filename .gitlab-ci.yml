@@ -36,24 +36,22 @@ clone:
   script:
     - echo "Cloning the repository..."
     - echo "Current directory: $(pwd)"  # Print current working directory
-    - mkdir -p $TF_PROJECT_DIR  # Ensure the target directory exists
-    - rm -rf $TF_PROJECT_DIR/*  # Clear the contents of the directory if it exists
+    - rm -rf $TF_PROJECT_DIR  # Remove any existing contents in the directory
     - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+    - cd $TF_PROJECT_DIR
     - echo "Repository cloned successfully."
 
 setup:
   stage: setup
   script:
     - echo "Setting up Terraform directory..."
-    - mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
-    - cd $TF_PROJECT_DIR
+    - cd $TF_PROJECT_DIR  # Change to the cloned directory
     - echo "Setup complete."
 
 initialize:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - cd $TF_PROJECT_DIR
     - terraform init
     - echo "Terraform initialization complete."
 
@@ -61,7 +59,6 @@ plan:
   stage: plan
   script:
     - echo "Running Terraform plan..."
-    - cd $TF_PROJECT_DIR
     - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
     - ls -l plan.tfout  # Check if the plan file was created successfully
 
@@ -69,8 +66,7 @@ apply:
   stage: apply
   script:
     - echo "Applying Terraform plan..."
-    - cd $TF_PROJECT_DIR  # Ensure we are in the correct directory
-    - ls -l plan.tfout  # Check if the plan file exists before applying it
+    - ls -l plan.tfout  # Ensure the plan file exists
     - terraform apply -auto-approve plan.tfout
     - echo "Terraform apply complete."
 
@@ -78,7 +74,6 @@ test:
   stage: test
   script:
     - echo "Running tests..."
-    - cd $TF_PROJECT_DIR
     - terraform show
     - echo "Tests complete."
 
@@ -86,6 +81,5 @@ cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up Terraform state..."
-    - cd $TF_PROJECT_DIR
     - terraform destroy -auto-approve
     - echo "Cleanup complete."
