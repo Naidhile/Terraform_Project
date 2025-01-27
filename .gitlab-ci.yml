@@ -23,8 +23,10 @@ before_script:
   - mv terraform /usr/local/bin/
   - terraform --version
   - export DOCKER_HOST=tcp://docker:2375
+  - echo "Waiting for Docker daemon to initialize..."
+  - sleep 15  # Add a short wait time for Docker to fully initialize
   - docker info  # Verify Docker is available
-  - docker ps || (echo "Docker service not running, attempting restart..." && service docker restart)
+  - docker ps ||  (echo "Docker is not running correctly" && exit 1) 
 
 clone:
   stage: clone
