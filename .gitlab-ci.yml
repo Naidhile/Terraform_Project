@@ -22,12 +22,13 @@ before_script:
   - unzip terraform_${TF_VERSION}_linux_amd64.zip
   - mv terraform /usr/local/bin/
   - terraform --version
+  - echo "Installing Docker..."
+  - apt-get update && apt-get install -y docker.io  # Install Docker in the Ruby container
   - export DOCKER_HOST=tcp://docker:2375
   - echo "Waiting for Docker daemon to initialize..."
   - sleep 30  # Add a short wait time for Docker to fully initialize
   - docker info  # Verify Docker is available
-  - docker ps ||  (echo "Docker is not running correctly" && exit 1)
-  - apt-get update && apt-get install -y docker.io  # Install Docker in Ruby container (if not already available) 
+  - docker ps || (echo "Docker is not running correctly" && exit 1)
 
 clone:
   stage: clone
@@ -59,6 +60,7 @@ initialize:
     - echo "Terraform initialization complete."
 
 plan:
+  image: docker:20.10.7
   script:
     - echo "Installing Terraform..."
     - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
