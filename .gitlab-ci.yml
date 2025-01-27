@@ -22,6 +22,7 @@ cache:
   key: terraform
   paths:
     - .terraform/
+    - terraform.lock.hcl
 
 before_script:
   - echo "Installing required tools..."
@@ -31,21 +32,18 @@ before_script:
   - unzip -o terraform_${TF_VERSION}_linux_amd64.zip
   - mv terraform /usr/local/bin/
   - terraform --version
-  - export DOCKER_HOST=tcp://docker:2375  # Docker service address
+  - export DOCKER_HOST=tcp://docker:2375
   - echo "Waiting for Docker daemon to initialize..."
-  - sleep 30  # Allow Docker time to initialize fully
+  - sleep 30
   - docker ps || (echo "Docker is not running correctly" && exit 1)
 
 clone:
   stage: clone
   script:
     - |
-      echo "Cleaning up existing directory..."
+      echo "Cloning the repository..."
       rm -rf /builds/naidhilebhuvana/Terraform_Project
       mkdir -p /builds/naidhilebhuvana/Terraform_Project
-      chmod -R 777 /builds/naidhilebhuvana/Terraform_Project
-      echo "Current directory: $(pwd)"
-      echo "Cloning the repository..."
       cd /builds/naidhilebhuvana/Terraform_Project
       git clone https://github.com/Naidhile/Terraform_Project.git .
       echo "Repository cloned."
@@ -64,6 +62,7 @@ initialize:
     - |
       echo "Initializing Terraform..."
       cd $TF_PROJECT_DIR
+      rm -rf .terraform  # Clear cached providers
       terraform init -reconfigure
       echo "Terraform initialization complete."
 
