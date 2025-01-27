@@ -22,7 +22,9 @@ before_script:
   - unzip terraform_${TF_VERSION}_linux_amd64.zip
   - mv terraform /usr/local/bin/
   - terraform --version
+  - export DOCKER_HOST=tcp://docker:2375
   - docker info  # Verify Docker is available
+  - docker ps || (echo "Docker service not running, attempting restart..." && service docker restart)
 
 clone:
   stage: clone
