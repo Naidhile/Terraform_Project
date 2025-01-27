@@ -60,6 +60,7 @@ initialize:
     - echo "Terraform initialization complete."
 
 plan:
+  stage: plan
   image: docker:20.10.7
   script:
     - echo "Installing Terraform..."
@@ -71,13 +72,15 @@ plan:
     - cd $TF_PROJECT_DIR
     - terraform init
     - echo "Running Terraform plan..."
-    - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082"
+    - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
+    - ls -l plan.tfout  # Check if the plan file was created successfully
 
 apply:
   stage: apply
   script:
     - echo "Applying Terraform plan..."
-    - cd $TF_PROJECT_DIR
+    - cd $TF_PROJECT_DIR  # Ensure we are in the correct directory
+    - ls -l plan.tfout  # Check if the plan file exists before applying it
     - terraform apply -auto-approve plan.tfout
     - echo "Terraform apply complete."
 
