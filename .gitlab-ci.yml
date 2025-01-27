@@ -8,47 +8,68 @@ stages:
   - cleanup
 
 variables:
-  GITHUB_REPO: "Naidhile/Terraform_Project"
-  DOCKER_USER: "Naidhile"
+  TF_VERSION: "1.0.0"
+  TF_PROJECT_DIR: "/terraform"
 
-clone_repository:
+before_script:
+  - echo "Installing Terraform..."
+  - curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+  - unzip terraform_${TF_VERSION}_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+  - terraform --version
+
+clone:
   stage: clone
   script:
-    - echo "Cloning GitHub repository for Terraform configuration files..."
-    - git clone https://github.com/$GITHUB_REPO.git
+    - echo "Cloning the repository..."
+    - git clone https://github.com/Naidhile/Terraform_Project.git
+    - cd Terraform_Project
+    - echo "Repository cloned successfully."
 
-install_dependencies:
+setup:
   stage: setup
   script:
-    - echo "Setting up environment for Terraform..."
-    - echo docker run -d --name terraform-env hashicorp/terraform:latest
+    - echo "Setting up Terraform directory..."
+    - mkdir -p $TF_PROJECT_DIR
+    - cd $TF_PROJECT_DIR
+    - echo "Setup complete."
 
-initialize_terraform:
+initialize:
   stage: initialize
   script:
     - echo "Initializing Terraform..."
-    - echo docker exec -i terraform-env terraform init
+    - cd $TF_PROJECT_DIR
+    - terraform init
+    - echo "Terraform initialization complete."
 
-plan_infrastructure:
+plan:
   stage: plan
   script:
-    - echo "Creating Terraform execution plan..."
-    - echo docker exec -i terraform-env terraform plan -out=tfplan
+    - echo "Running Terraform plan..."
+    - cd $TF_PROJECT_DIR
+    - terraform plan -out=plan.tfout
+    - echo "Terraform plan complete."
 
-apply_configuration:
+apply:
   stage: apply
   script:
-    - echo "Applying Terraform configuration..."
-    - echo docker exec -i terraform-env terraform apply -auto-approve tfplan
+    - echo "Applying Terraform plan..."
+    - cd $TF_PROJECT_DIR
+    - terraform apply -auto-approve plan.tfout
+    - echo "Terraform apply complete."
 
-test_configuration:
+test:
   stage: test
   script:
-    - echo "Testing deployed infrastructure..."
-    - echo docker exec -i terraform-env terraform output
+    - echo "Running tests..."
+    - cd $TF_PROJECT_DIR
+    - terraform show
+    - echo "Tests complete."
 
 cleanup:
   stage: cleanup
   script:
-    - echo "Cleaning up the environment..."
-    -  echo docker rm -f terraform-env
+    - echo "Cleaning up Terraform state..."
+    - cd $TF_PROJECT_DIR
+    - terraform destroy -auto-approve
+    - echo "Cleanup complete."
