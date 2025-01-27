@@ -24,9 +24,10 @@ before_script:
   - terraform --version
   - export DOCKER_HOST=tcp://docker:2375
   - echo "Waiting for Docker daemon to initialize..."
-  - sleep 15  # Add a short wait time for Docker to fully initialize
+  - sleep 30  # Add a short wait time for Docker to fully initialize
   - docker info  # Verify Docker is available
-  - docker ps ||  (echo "Docker is not running correctly" && exit 1) 
+  - docker ps ||  (echo "Docker is not running correctly" && exit 1)
+  - apt-get update && apt-get install -y docker.io  # Install Docker in Ruby container (if not already available) 
 
 clone:
   stage: clone
