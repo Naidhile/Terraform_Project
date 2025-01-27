@@ -35,8 +35,8 @@ clone:
   stage: clone
   script:
     - echo "Cloning the repository..."
-    - git clone https://github.com/Naidhile/Terraform_Project.git
-    - cd Terraform_Project
+    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+    - cd $TF_PROJECT_DIR
     - echo "Repository cloned successfully."
 
 setup:
