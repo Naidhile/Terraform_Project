@@ -23,6 +23,7 @@ cache:
   paths:
     - .terraform/
     - terraform.lock.hcl
+    - /usr/local/bin/terraform
 
 before_script:
   - echo "Installing required tools..."
@@ -34,70 +35,61 @@ before_script:
   - terraform --version
   - export DOCKER_HOST=tcp://docker:2375
   - echo "Waiting for Docker daemon to initialize..."
-  - sleep 30
-  - docker ps || (echo "Docker is not running correctly" && exit 1)
+  - until docker info > /dev/null 2>&1; do echo "Waiting for Docker to be ready..."; sleep 5; done
 
 clone:
   stage: clone
   script:
-    - |
-      echo "Cloning the repository..."
-      rm -rf /builds/naidhilebhuvana/Terraform_Project
-      mkdir -p /builds/naidhilebhuvana/Terraform_Project
-      cd /builds/naidhilebhuvana/Terraform_Project
-      git clone https://github.com/Naidhile/Terraform_Project.git .
-      echo "Repository cloned."
+    - echo "Cloning the repository..."
+    - rm -rf $TF_PROJECT_DIR
+    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+    - echo "Repository cloned."
 
 setup:
   stage: setup
   script:
-    - |
-      echo "Setting up Terraform directory..."
-      cd $TF_PROJECT_DIR
-      echo "Setup complete."
+    - echo "Setting up Terraform directory..."
+    - cd $TF_PROJECT_DIR
+    - echo "Setup complete."
 
 initialize:
   stage: initialize
   script:
-    - |
-      echo "Initializing Terraform..."
-      cd $TF_PROJECT_DIR
-      rm -rf .terraform  # Clear cached providers
-      terraform init -reconfigure
-      echo "Terraform initialization complete."
+    - echo "Initializing Terraform..."
+    - cd $TF_PROJECT_DIR
+    - rm -rf .terraform  # Clear cached providers
+    - terraform init -reconfigure
+    - echo "Terraform initialization complete."
 
 plan:
   stage: plan
   script:
-    - |
-      echo "Running Terraform plan..."
-      cd $TF_PROJECT_DIR
-      terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
-      ls -l plan.tfout
+    - echo "Running Terraform plan..."
+    - cd $TF_PROJECT_DIR
+    - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
+    - ls -l plan.tfout
+    - echo "Terraform plan complete."
 
 apply:
   stage: apply
   script:
-    - |
-      echo "Applying Terraform plan..."
-      cd $TF_PROJECT_DIR
-      terraform apply -auto-approve plan.tfout
-      echo "Terraform apply complete."
+    - echo "Applying Terraform plan..."
+    - cd $TF_PROJECT_DIR
+    - terraform apply -auto-approve plan.tfout
+    - echo "Terraform apply complete."
 
 test:
   stage: test
   script:
-    - |
-      echo "Validating Terraform configuration..."
-      cd $TF_PROJECT_DIR
-      terraform validate
-      echo "Tests complete."
+    - echo "Validating Terraform configuration..."
+    - cd $TF_PROJECT_DIR
+    - terraform validate
+    - echo "Tests complete."
 
 cleanup:
   stage: cleanup
   script:
-    - |
-      echo "Cleaning up Terraform state..."
-      cd $TF_PROJECT_DIR
-      terraform destroy -auto-approve
-      echo "Cleanup complete."
+    - echo "Cleaning up Terraform state..."
+    - cd $TF_PROJECT_DIR
+    - terraform destroy -auto-approve
+    - echo "Cleanup complete."
