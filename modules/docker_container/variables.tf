@@ -1,19 +1,21 @@
+# variables.tf (inside modules/docker_container)
+
 variable "container_name" {
-  description = "The name of the container"
   type        = string
+  description = "Name of the Docker container"
 }
 
 variable "image_name" {
-  description = "The Docker image to use"
   type        = string
+  description = "Docker image name"
 }
 
 variable "container_port" {
-  description = "The internal port exposed by the container"
   type        = number
+  description = "Internal port on the container"
 }
 
 variable "external_port" {
-  description = "The external port mapped to the host"
   type        = number
+  description = "External port exposed to the host"
 }

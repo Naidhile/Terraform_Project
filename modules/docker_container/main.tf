@@ -1,30 +1,11 @@
+# main.tf (inside modules/docker_container)
+
 resource "docker_container" "nginx" {
-  name    = var.container_name
-  image   = var.image_name
+  name    = var.container_name  # Reference the variable
+  image   = var.image_name      # Reference the variable
+
   ports {
-    internal = var.container_port
-    external = var.external_port
+    internal = var.container_port  # Reference the variable
+    external = var.external_port   # Reference the variable
   }
 }
-
-# Variable declarations for the container parameters
-variable "container_name" {
-  type        = string
-  description = "Name of the Docker container"
-}
-
-variable "image_name" {
-  type        = string
-  description = "Docker image name"
-}
-
-variable "container_port" {
-  type        = number
-  description = "Internal port on the container"
-}
-
-variable "external_port" {
-  type        = number
-  description = "External port exposed to the host"
-}
-
