@@ -1,104 +1,80 @@
 stages:
-  - clone
-  - setup
-  - initialize
-  - plan
-  - apply
+  - build
   - test
+  - security
+  - terraform_plan
+  - approval
+  - terraform_apply
+  - post_deployment_validation
   - cleanup
 
-variables:
-  TF_VERSION: "1.10.5"
-  TF_PROJECT_DIR: "/builds/naidhilebhuvana/Terraform_Project"
-
-image: alpine:latest
-
-services:
-  - name: docker:20.10.7-dind
-    alias: docker
-    command: ["--host=tcp://0.0.0.0:2375"]
-
-cache:
-  key: terraform
-  paths:
-    - .terraform/
-    - terraform.lock.hcl
-    - /usr/local/bin/terraform
-
-before_script:
-  - |
-    echo "Installing required tools..."
-    apk add --no-cache curl unzip git docker  # Install necessary tools
-    echo "Installing Terraform..."
-    curl -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip  # Download Terraform
-    unzip -o terraform_${TF_VERSION}_linux_amd64.zip  # Extract the Terraform binary
-    mv terraform /usr/local/bin/  # Move to /usr/local/bin
-    terraform --version  # Verify Terraform installation
-    export DOCKER_HOST=tcp://docker:2375  # Set DOCKER_HOST to Docker service exposed via TCP
-    echo "Waiting for Docker daemon to initialize..."
-    until docker info > /dev/null 2>&1; do echo "Waiting for Docker to be ready..."; sleep 5; done  # Wait for Docker to be ready
-
-clone:
-  stage: clone
+# Build Docker image containing Terraform
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - |
-      echo "Cloning the repository..."
-      rm -rf /builds/naidhilebhuvana/Terraform_Project
-      mkdir -p /builds/naidhilebhuvana/Terraform_Project
-      cd /builds/naidhilebhuvana/Terraform_Project
-      git clone https://github.com/Naidhile/Terraform_Project.git .
-      if [ $? -eq 0 ]; then echo "Repository cloned successfully."; else echo "Failed to clone repository."; exit 1; fi
+    - docker build -t terraform-project .
 
-setup:
-  stage: setup
-  script:
-    - echo "Setting up Terraform directory..."
-    - cd $TF_PROJECT_DIR
-    - echo "Setup complete."
-
-initialize:
-  stage: initialize
-  script:
-    - |
-      echo "Initializing Terraform..."
-      cd $TF_PROJECT_DIR
-      rm -rf .terraform  # Clear cached providers
-      terraform init -reconfigure
-      if [ $? -eq 0 ]; then echo "Terraform initialization complete."; else echo "Terraform initialization failed."; exit 1; fi
-
-plan:
-  stage: plan
-  script:
-    - |
-      echo "Running Terraform plan..."
-      cd $TF_PROJECT_DIR
-      terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
-      if [ $? -eq 0 ]; then echo "Terraform plan complete."; else echo "Terraform plan failed."; exit 1; fi
-    - ls -l plan.tfout
-
-apply:
-  stage: apply
-  script:
-    - |
-      echo "Applying Terraform plan..."
-      cd $TF_PROJECT_DIR
-      terraform apply -auto-approve plan.tfout
-      if [ $? -eq 0 ]; then echo "Terraform apply complete."; else echo "Terraform apply failed."; exit 1; fi
-
+# Validate Terraform code (check if it's valid)
 test:
   stage: test
+  image: hashicorp/terraform:latest
   script:
-    - |
-      echo "Validating Terraform configuration..."
-      cd $TF_PROJECT_DIR
-      terraform validate
-      if [ $? -eq 0 ]; then echo "Terraform validation complete."; else echo "Terraform validation failed."; exit 1; fi
+    - terraform validate
+    - terraform fmt -check
 
+# Run security checks on Terraform code
+security:
+  stage: security
+  image: python:3.8
+  script:
+    - pip install tflint checkov tfsec
+    - tflint .
+    - checkov -d .
+    - tfsec .
+
+# Generate Terraform plan
+terraform_plan:
+  stage: terraform_plan
+  image: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform plan
+  artifacts:
+    paths:
+      - terraform-plan.txt
+
+# Manual Approval Stage
+approval:
+  stage: approval
+  script:
+    - echo "Waiting for manual approval..."
+  when: manual
+  allow_failure: false
+
+# Apply Terraform changes (Provision infrastructure)
+terraform_apply:
+  stage: terraform_apply
+  image: hashicorp/terraform:latest
+  script:
+    - terraform init
+    - terraform apply -auto-approve
+  dependencies:
+    - terraform_plan
+
+# Post-deployment validation
+post_deployment_validation:
+  stage: post_deployment_validation
+  image: curlimages/curl:latest
+  script:
+    - curl -f http://my-deployed-service/health || exit 1
+
+# Clean up unnecessary Docker resources
 cleanup:
   stage: cleanup
+  image: docker:latest
   script:
-    - |
-      echo "Cleaning up Terraform state..."
-      cd $TF_PROJECT_DIR
-      terraform destroy -auto-approve
-      if [ $? -eq 0 ]; then echo "Terraform cleanup complete."; else echo "Terraform cleanup failed."; exit 1; fi
+    - docker system prune -f
+
