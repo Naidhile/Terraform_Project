@@ -58,11 +58,12 @@ setup:
 initialize:
   stage: initialize
   script:
-    - echo "Initializing Terraform..."
-    - cd $TF_PROJECT_DIR
-    - rm -rf .terraform  # Clear cached providers
-    - terraform init -reconfigure
-    - echo "Terraform initialization complete."
+    - |
+      echo "Initializing Terraform..."
+      cd $TF_PROJECT_DIR
+      rm -rf .terraform  # Clear cached providers
+      terraform init -reconfigure
+      echo "Terraform initialization complete."
 
 plan:
   stage: plan
