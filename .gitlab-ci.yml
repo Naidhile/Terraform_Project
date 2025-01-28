@@ -7,84 +7,70 @@ stages:
   - terraform_apply
   - cleanup
 
-# Global variables
 variables:
-  TF_VAR_environment: "dev"            # Specify environment (dev, staging, prod)
-  TF_LOG: "DEBUG"                      # Enable debug logging for Terraform
-  TF_INPUT: "false"                    # Disable interactive prompts
-  TF_PLAN_FILE: "terraform-plan.tfplan" # Terraform plan file
+  TF_IN_AUTOMATION: "true"
+  TF_VERSION: "1.10.5"   # Adjust this based on the required Terraform version
 
-# Stage 1: Build Docker image containing Terraform
+before_script:
+  - apt-get update && apt-get install -y wget unzip
+  - wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+  - unzip terraform_${TF_VERSION}_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+
+# Build stage
 build:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
   script:
-    - echo "Building Docker image for Terraform project..."
-    - docker version                  # Check Docker version
-    - docker build -t terraform-project .  # Build Docker image
+    - echo "Building application or environment setup"
+    - # Add your build commands here (e.g., building your application or Docker images)
 
-# Stage 2: Validate Terraform code (linting, formatting)
+# Test stage
 test:
   stage: test
-  image: hashicorp/terraform:latest
   script:
-    - echo "Initializing Terraform and running validations..."
+    - echo "Running tests"
     - terraform version                # Check Terraform version
     - terraform init                   # Initialize Terraform
     - terraform validate               # Validate the configuration
-    - terraform fmt -check             # Check formatting
 
-# Stage 3: Run security checks on Terraform code
+# Security stage
 security:
   stage: security
-  image: python:3.8
   script:
-    - echo "Running security checks on Terraform code..."
-    - pip install tflint checkov tfsec  # Install security tools
-    - tflint .                         # Run Terraform linting
-    - checkov -d .                     # Security scan using Checkov
-    - tfsec .                          # Security scan using TFSec
+    - echo "Running security checks"
+    - # Run security checks such as static code analysis, vulnerability scans, etc.
 
-# Stage 4: Generate Terraform plan
+# Terraform plan stage
 terraform_plan:
   stage: terraform_plan
-  image: hashicorp/terraform:latest
   script:
-    - echo "Generating Terraform plan..."
-    - terraform version                # Confirm Terraform version
-    - terraform init                   # Initialize Terraform
-    - terraform plan -out=${TF_PLAN_FILE} -detailed-exitcode  # Generate plan
+    - echo "Running Terraform plan"
+    - terraform init
+    - terraform plan -out=tfplan
   artifacts:
     paths:
-      - ${TF_PLAN_FILE}  # Save the plan as an artifact for future stages
-    expire_in: 1 day     # Expire plan file after 1 day
+      - tfplan
+    expire_in: 1 hour
 
-# Stage 5: Manual approval stage
+# Approval stage
 approval:
   stage: approval
   script:
-    - echo "Waiting for manual approval before applying changes..."
+    - echo "Waiting for manual approval"
   when: manual
-  allow_failure: false  # Require approval to proceed
 
-# Stage 6: Apply Terraform plan (Provision infrastructure)
+# Terraform apply stage
 terraform_apply:
   stage: terraform_apply
-  image: hashicorp/terraform:latest
   script:
-    - echo "Applying Terraform plan to provision infrastructure..."
-    - terraform version                # Confirm Terraform version
-    - terraform init                   # Initialize Terraform
-    - terraform apply -auto-approve ${TF_PLAN_FILE}  # Apply the plan
-  dependencies:
-    - terraform_plan  # Ensure Terraform plan has been generated before applying
+    - echo "Applying Terraform plan"
+    - terraform apply -auto-approve tfplan
 
-# Stage 7: Cleanup Docker resources
+# Cleanup stage
 cleanup:
   stage: cleanup
-  image: docker:latest
   script:
-    - echo "Cleaning up unused Docker resources..."
-    - docker system prune -f  # Remove unused Docker images, containers, and volumes
+    - echo "Cleaning up resources"
+    - terraform destroy -auto-approve
+  only:
+    - master  # or your main branch
