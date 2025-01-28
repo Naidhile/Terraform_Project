@@ -1,3 +1,9 @@
+# Docker provider configuration (TCP for Linux or remote Docker setup)
+provider "docker" {
+  host = "tcp://localhost:2375"  # Adjusted for TCP communication
+}
+
+# Using the docker_container module to create a container
 module "docker_container" {
   source = "./modules/docker_container"
 
@@ -10,9 +16,3 @@ module "docker_container" {
     docker = docker
   }
 }
-
-provider "docker" {
-  host = "npipe:////./pipe/docker_engine"
-}
-
-
