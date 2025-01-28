@@ -15,13 +15,15 @@ build:
   services:
     - docker:dind
   script:
+    - docker version  # Add this line to confirm Docker is working
     - docker build -t terraform-project .
-
+  
 # Validate Terraform code (check if it's valid)
 test:
   stage: test
   image: hashicorp/terraform:latest
   script:
+    - terraform version  # Add this to confirm Terraform version in CI
     - terraform init
     - terraform validate
     - terraform fmt -check
@@ -41,8 +43,10 @@ terraform_plan:
   stage: terraform_plan
   image: hashicorp/terraform:latest
   script:
+    - terraform version  # Add this to confirm Terraform version
     - terraform init
-    - terraform plan -out=terraform-plan.txt
+    - terraform plan -out=terraform-plan.txt -detailed-exitcode  # Add detailed-exitcode for debugging
+    - export TF_LOG=DEBUG  # Increase verbosity for debugging
   artifacts:
     paths:
       - terraform-plan.txt
@@ -60,6 +64,7 @@ terraform_apply:
   stage: terraform_apply
   image: hashicorp/terraform:latest
   script:
+    - terraform version  # Confirm version in this stage as well
     - terraform init
     - terraform apply -auto-approve terraform-plan.txt
   dependencies:
