@@ -25,9 +25,6 @@ cache:
     - terraform.lock.hcl
     - /usr/local/bin/terraform
 
-stages:
-  - deploy
-
 before_script:
   - |
     echo "Installing required tools..."
