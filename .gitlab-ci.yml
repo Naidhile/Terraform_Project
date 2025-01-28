@@ -8,6 +8,13 @@ stages:
   - post_deployment_validation
   - cleanup
 
+# Declare global variables
+variables:
+  TF_VAR_environment: "dev"            # Example environment variable
+  TF_LOG: "DEBUG"                      # Terraform debug level
+  TF_INPUT: "false"                    # Disable interactive prompts
+  TF_PLAN_FILE: "terraform-plan.txt"   # Terraform plan file
+
 # Build Docker image containing Terraform
 build:
   stage: build
@@ -34,9 +41,9 @@ security:
   image: python:3.8
   script:
     - pip install tflint checkov tfsec
-    - tflint .
-    - checkov -d .
-    - tfsec .
+    - tflint .             # Check for Terraform linting errors
+    - checkov -d .         # Perform security scans
+    - tfsec .              # Perform additional security checks
 
 # Generate Terraform plan
 terraform_plan:
@@ -45,12 +52,10 @@ terraform_plan:
   script:
     - terraform version  # Check Terraform version
     - terraform init
-    - terraform plan -out=terraform-plan.txt -detailed-exitcode
-    - export TF_LOG=DEBUG  # Debugging output
-
+    - terraform plan -out=${TF_PLAN_FILE} -detailed-exitcode
   artifacts:
     paths:
-      - terraform-plan.txt
+      - ${TF_PLAN_FILE}
 
 # Manual Approval Stage
 approval:
@@ -67,7 +72,7 @@ terraform_apply:
   script:
     - terraform version  # Confirm Terraform version in this stage
     - terraform init
-    - terraform apply -auto-approve terraform-plan.txt
+    - terraform apply -auto-approve ${TF_PLAN_FILE}
   dependencies:
     - terraform_plan
 
