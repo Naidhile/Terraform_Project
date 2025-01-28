@@ -42,9 +42,10 @@ clone:
   script:
     - |
       echo "Cloning the repository..."
-      mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
-      rm -rf $TF_PROJECT_DIR/*
-      git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+      rm -rf /builds/naidhilebhuvana/Terraform_Project
+      mkdir -p /builds/naidhilebhuvana/Terraform_Project
+      cd /builds/naidhilebhuvana/Terraform_Project
+      git clone https://github.com/Naidhile/Terraform_Project.git .
       echo "Repository cloned."
 
 setup:
