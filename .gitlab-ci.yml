@@ -40,10 +40,12 @@ before_script:
 clone:
   stage: clone
   script:
-    - echo "Cloning the repository..."
-    - rm -rf $TF_PROJECT_DIR
-    - git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
-    - echo "Repository cloned."
+    - |
+      echo "Cloning the repository..."
+      mkdir -p $TF_PROJECT_DIR  # Ensure the directory exists
+      rm -rf $TF_PROJECT_DIR/*
+      git clone https://github.com/Naidhile/Terraform_Project.git $TF_PROJECT_DIR
+      echo "Repository cloned."
 
 setup:
   stage: setup
