@@ -46,7 +46,7 @@ clone:
       mkdir -p /builds/naidhilebhuvana/Terraform_Project
       cd /builds/naidhilebhuvana/Terraform_Project
       git clone https://github.com/Naidhile/Terraform_Project.git .
-      echo "Repository cloned."
+      if [ $? -eq 0 ]; then echo "Repository cloned successfully."; else echo "Failed to clone repository."; exit 1; fi
 
 setup:
   stage: setup
@@ -63,37 +63,41 @@ initialize:
       cd $TF_PROJECT_DIR
       rm -rf .terraform  # Clear cached providers
       terraform init -reconfigure
-      echo "Terraform initialization complete."
+      if [ $? -eq 0 ]; then echo "Terraform initialization complete."; else echo "Terraform initialization failed."; exit 1; fi
 
 plan:
   stage: plan
   script:
-    - echo "Running Terraform plan..."
-    - cd $TF_PROJECT_DIR
-    - terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
+    - |
+      echo "Running Terraform plan..."
+      cd $TF_PROJECT_DIR
+      terraform plan -out=plan.tfout -var="container_name=my_container" -var="image=nginx:latest" -var="external_port=8082" -input=false
+      if [ $? -eq 0 ]; then echo "Terraform plan complete."; else echo "Terraform plan failed."; exit 1; fi
     - ls -l plan.tfout
-    - echo "Terraform plan complete."
 
 apply:
   stage: apply
   script:
-    - echo "Applying Terraform plan..."
-    - cd $TF_PROJECT_DIR
-    - terraform apply -auto-approve plan.tfout
-    - echo "Terraform apply complete."
+    - |
+      echo "Applying Terraform plan..."
+      cd $TF_PROJECT_DIR
+      terraform apply -auto-approve plan.tfout
+      if [ $? -eq 0 ]; then echo "Terraform apply complete."; else echo "Terraform apply failed."; exit 1; fi
 
 test:
   stage: test
   script:
-    - echo "Validating Terraform configuration..."
-    - cd $TF_PROJECT_DIR
-    - terraform validate
-    - echo "Tests complete."
+    - |
+      echo "Validating Terraform configuration..."
+      cd $TF_PROJECT_DIR
+      terraform validate
+      if [ $? -eq 0 ]; then echo "Terraform validation complete."; else echo "Terraform validation failed."; exit 1; fi
 
 cleanup:
   stage: cleanup
   script:
-    - echo "Cleaning up Terraform state..."
-    - cd $TF_PROJECT_DIR
-    - terraform destroy -auto-approve
-    - echo "Cleanup complete."
+    - |
+      echo "Cleaning up Terraform state..."
+      cd $TF_PROJECT_DIR
+      terraform destroy -auto-approve
+      if [ $? -eq 0 ]; then echo "Terraform cleanup complete."; else echo "Terraform cleanup failed."; exit 1; fi
