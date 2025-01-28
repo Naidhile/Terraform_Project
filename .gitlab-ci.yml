@@ -22,6 +22,7 @@ test:
   stage: test
   image: hashicorp/terraform:latest
   script:
+    - terraform init
     - terraform validate
     - terraform fmt -check
 
@@ -41,7 +42,7 @@ terraform_plan:
   image: hashicorp/terraform:latest
   script:
     - terraform init
-    - terraform plan
+    - terraform plan -out=terraform-plan.txt
   artifacts:
     paths:
       - terraform-plan.txt
@@ -60,7 +61,7 @@ terraform_apply:
   image: hashicorp/terraform:latest
   script:
     - terraform init
-    - terraform apply -auto-approve
+    - terraform apply -auto-approve terraform-plan.txt
   dependencies:
     - terraform_plan
 
@@ -77,4 +78,3 @@ cleanup:
   image: docker:latest
   script:
     - docker system prune -f
-
