@@ -22,7 +22,7 @@ build:
   stage: build
   script:
     - echo "Building application or environment setup"
-    - # Add your build commands here (e.g., building your application or Docker images)
+    # Add your build commands here (e.g., building your application or Docker images)
 
 # Test stage
 test:
@@ -30,26 +30,27 @@ test:
   script:
     - echo "Running tests"
     - terraform version                # Check Terraform version
-    - terraform init                   # Initialize Terraform
-    - terraform validate               # Validate the configuration
+    - terraform init                   # Initialize Terraform (can be skipped if already done in `before_script`)
+    - terraform validate               # Validate the Terraform configuration
 
 # Security stage
 security:
   stage: security
   script:
     - echo "Running security checks"
-    - # Run security checks such as static code analysis, vulnerability scans, etc.
+    # Run security checks such as static code analysis, vulnerability scans, etc.
+    # You can integrate tools like `checkov`, `tflint`, or `terraform-compliance` for security checks
 
 # Terraform plan stage
 terraform_plan:
   stage: terraform_plan
   script:
     - echo "Running Terraform plan"
-    - terraform init
-    - terraform plan -out=tfplan
+    - terraform init                   # Ensure Terraform is initialized
+    - terraform plan -out=tfplan       # Generate the execution plan
   artifacts:
     paths:
-      - tfplan
+      - tfplan                         # Store the plan artifact for later use
     expire_in: 1 hour
 
 # Approval stage
@@ -57,20 +58,20 @@ approval:
   stage: approval
   script:
     - echo "Waiting for manual approval"
-  when: manual
+  when: manual  # This will pause the pipeline for manual approval
 
 # Terraform apply stage
 terraform_apply:
   stage: terraform_apply
   script:
     - echo "Applying Terraform plan"
-    - terraform apply -auto-approve tfplan
+    - terraform apply -auto-approve tfplan  # Automatically apply the plan
 
 # Cleanup stage
 cleanup:
   stage: cleanup
   script:
     - echo "Cleaning up resources"
-    - terraform destroy -auto-approve
+    - terraform destroy -auto-approve  # Destroy the resources after test or cleanup
   only:
-    - master  # or your main branch
+    - master  # Run this cleanup only on the `master` branch (or your main branch)
