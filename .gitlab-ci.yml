@@ -46,8 +46,7 @@ terraform_plan:
   stage: terraform_plan
   script:
     - echo "Running Terraform plan"
-    - terraform init                   # Ensure Terraform is initialized
-    - terraform plan -out=tfplan       # Generate the execution plan
+    - terraform init && terraform plan -out=tfplan -var "container_name=my_container" -var "image=my_docker_image" -var "external_port=8082"
   artifacts:
     paths:
       - tfplan                         # Store the plan artifact for later use
