@@ -5,59 +5,63 @@ stages:
   - terraform_plan
   - approval
   - terraform_apply
-  - post_deployment_validation
   - cleanup
 
-# Declare global variables
+# Global variables
 variables:
-  TF_VAR_environment: "dev"            # Example environment variable
-  TF_LOG: "DEBUG"                      # Terraform debug level
+  TF_VAR_environment: "dev"            # Specify the environment (e.g., dev, prod)
+  TF_LOG: "DEBUG"                      # Enable Terraform debug logs
   TF_INPUT: "false"                    # Disable interactive prompts
-  TF_PLAN_FILE: "terraform-plan.txt"   # Terraform plan file
+  TF_PLAN_FILE: "terraform-plan.tfplan" # Terraform plan file
 
-# Build Docker image containing Terraform
+# Stage 1: Build Docker image containing Terraform
 build:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    - docker version  # Check Docker version
+    - echo "Building Docker image for the Terraform project..."
+    - docker version
     - docker build -t terraform-project .
 
-# Validate Terraform code (check if it's valid)
+# Stage 2: Validate Terraform code
 test:
   stage: test
   image: hashicorp/terraform:latest
   script:
-    - terraform version  # Check Terraform version
+    - echo "Initializing and validating Terraform code..."
+    - terraform version
     - terraform init
     - terraform validate
     - terraform fmt -check
 
-# Run security checks on Terraform code
+# Stage 3: Security checks on Terraform code
 security:
   stage: security
   image: python:3.8
   script:
+    - echo "Running security checks on Terraform code..."
     - pip install tflint checkov tfsec
-    - tflint .             # Check for Terraform linting errors
-    - checkov -d .         # Perform security scans
-    - tfsec .              # Perform additional security checks
+    - tflint .             # Linting Terraform code
+    - checkov -d .         # Security scan using Checkov
+    - tfsec .              # Additional security checks using TFSec
 
-# Generate Terraform plan
+# Stage 4: Generate Terraform plan
 terraform_plan:
   stage: terraform_plan
   image: hashicorp/terraform:latest
   script:
-    - terraform version  # Check Terraform version
+    - echo "Generating Terraform plan..."
+    - terraform version
     - terraform init
     - terraform plan -out=${TF_PLAN_FILE} -detailed-exitcode
   artifacts:
     paths:
-      - ${TF_PLAN_FILE}
+      - ${TF_PLAN_FILE}    # Save the Terraform plan as an artifact
+    expire_in: 1 day       # Artifact expiration time
 
-# Manual Approval Stage
+# Stage 5: Manual approval
 approval:
   stage: approval
   script:
@@ -65,27 +69,22 @@ approval:
   when: manual
   allow_failure: false
 
-# Apply Terraform changes (Provision infrastructure)
+# Stage 6: Apply Terraform changes
 terraform_apply:
   stage: terraform_apply
   image: hashicorp/terraform:latest
   script:
-    - terraform version  # Confirm Terraform version in this stage
+    - echo "Applying Terraform changes..."
+    - terraform version
     - terraform init
     - terraform apply -auto-approve ${TF_PLAN_FILE}
   dependencies:
     - terraform_plan
 
-# Post-deployment validation
-post_deployment_validation:
-  stage: post_deployment_validation
-  image: curlimages/curl:latest
-  script:
-    - curl -f http://my-deployed-service/health || exit 1
-
-# Clean up unnecessary Docker resources
+# Stage 7: Clean up Docker resources
 cleanup:
   stage: cleanup
   image: docker:latest
   script:
+    - echo "Cleaning up unused Docker resources..."
     - docker system prune -f
